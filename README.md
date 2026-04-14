@@ -38,6 +38,7 @@ pip install torch transformers peft bitsandbytes accelerate datasets
 ⚙️ How to use it
 
 1. Fine-Tuning
+
 To train the model (GPU NVIDIA with at least 8GB is needed or you can use Google Colab):
 
 ```python 
