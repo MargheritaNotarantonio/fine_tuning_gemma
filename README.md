@@ -9,6 +9,7 @@ The model I chose is '[google/gemma-3-270m-it](https://huggingface.co/google/gem
 
 To set up the project properly I decided to use the [uv](https://docs.astral.sh/uv/) library: 
 
+```python 
 project_fine_tuning/
 ├── config/                 # Configurations
 │   └── settings.py         # MODEL_ID, Hyperparameters, bnb_config
@@ -19,6 +20,7 @@ project_fine_tuning/
 ├── inference.py            # Inference Script 
 ├── load_tuned_model.py     # Model loading script 
 └── README.md               # Documentation
+```
 
 🛠️ Installation
 
