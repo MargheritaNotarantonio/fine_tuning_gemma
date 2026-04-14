@@ -26,8 +26,10 @@ project_fine_tuning/
 
 1. Clone of repository
 
+```python 
 git clone https://github.com/MargheritaNotarantonio/fine_tuning_gemma
 cd fine_tuning_gemma
+```
 
 2. Installation of dependecies (it is strongly suggested to use a virtual environment)
 
