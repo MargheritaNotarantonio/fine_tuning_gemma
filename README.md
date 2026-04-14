@@ -33,7 +33,9 @@ cd fine_tuning_gemma
 
 2. Installation of dependecies (it is strongly suggested to use a virtual environment)
 
+```python 
 pip install torch transformers peft bitsandbytes accelerate datasets
+```
 
 ⚙️ How to use it
 
@@ -60,6 +62,8 @@ uv run inference.py
 2. Chat Template: The official Gemma 3 template is used to correctly handle conversation turns between <|user|> and <|assistant|>.
 
 3. Local Deployment: If you are running the script locally without an NVIDIA GPU, ensure you remove the bitsandbytes configuration and load the model in float32.
+
+
 
 👨‍💻 Autore
 M. Notarantonio 
