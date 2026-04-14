@@ -4,7 +4,7 @@ from huggingface_hub import login
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training, PeftModel
 from trl import SFTTrainer, SFTConfig
-from config.settings import MODEL_ID, COMPUTE_DTYPE, LORA_R, LORA_ALPHA, OUTPUT_DIR, ADAPTER_DIR, GRADIENT_ACC_STEPS, BATCH_SIZE, MAX_SEQ_LENGTH
+from config.settings import MODEL_ID, COMPUTE_DTYPE, ADAPTER_DIR, bnb_config, lora_config, training_args
 
 def create_conversation(sample):
     return {
@@ -33,15 +33,8 @@ def train ():
     print(f"[DEBUG] Eval  examples : {len(dataset['test'])}")
 
     # ══════════════════════════════════════════════════════════════════════════════
-    # 2. CARICAMENTO MODELLO IN 4-BIT (la "Q" di QLoRA)
+    # 2. UPLOADING MODELLO IN 4-BIT 
     # ══════════════════════════════════════════════════════════════════════════════
-
-    bnb_config = BitsAndBytesConfig(
-        load_in_4bit=True,
-        bnb_4bit_quant_type="nf4",          
-        bnb_4bit_compute_dtype=COMPUTE_DTYPE,
-        bnb_4bit_use_double_quant=True,     
-    )
 
     model = AutoModelForCausalLM.from_pretrained(
         MODEL_ID,
@@ -57,8 +50,8 @@ def train ():
     # No caching
     model.config.use_cache = False
 
-    # Tokenizer
-    tokenizer = AutoTokenizer.from_pretrained(model)
+    # Tokenizer from HuggingFace repository, only the path is needed
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
 
     print(f"\n [DEBUG] Model uploaded in 4-bit to: {model.device}")
 
@@ -67,23 +60,6 @@ def train ():
     # ══════════════════════════════════════════════════════════════════════════════
     model = prepare_model_for_kbit_training(model)
 
-    lora_config = LoraConfig(
-        r=LORA_R,               
-        lora_alpha=LORA_ALPHA,      
-        target_modules=[    
-            "q_proj",
-            "k_proj",
-            "v_proj",
-            "o_proj",
-            "gate_proj",
-            "up_proj",
-            "down_proj",
-        ],
-        lora_dropout=0.05,
-        bias="none",
-        task_type="CAUSAL_LM",
-    )
-
     # Attaching LoRA configurations to the model: adding A and B matrices to every target layers
     model = get_peft_model(model, lora_config)
     model.print_trainable_parameters()
@@ -91,39 +67,8 @@ def train ():
     print(f"\n [DEBUG] LoRA configurations DONE!")
 
     # ══════════════════════════════════════════════════════════════════════════════
-    # 4. STConfig AND SFTTrainer
+    # 4. SFTTrainer
     # ══════════════════════════════════════════════════════════════════════════════
-
-    training_args = SFTConfig(
-        output_dir=OUTPUT_DIR,
-
-        # ── epochs e batches ──────────────────────────────────────────────────────
-        num_train_epochs=3,
-        per_device_train_batch_size=BATCH_SIZE, 
-        per_device_eval_batch_size=2,
-        gradient_accumulation_steps=GRADIENT_ACC_STEPS,     
-        gradient_checkpointing=True,       
-        # ── optimizer ───────────────────────────────────────────────────────
-        optim="paged_adamw_8bit",        
-        learning_rate=2e-4,
-        lr_scheduler_type="cosine",
-        warmup_ratio=0.03,
-        weight_decay=0.01,
-        # ── precision ──────────────────────────────────────────────────────────
-        bf16=True,                         
-        # ── sequence ────────────────────────────────────────────────────────────
-        packing=False,                    
-        # ── logs e savings ───────────────────────────────────────────────────
-        logging_steps=10,
-        eval_strategy="epoch",
-        eval_steps=100,
-        save_strategy="epoch",
-        save_steps=100,
-        save_total_limit=2,                
-        load_best_model_at_end=True,
-        metric_for_best_model="eval_loss",
-        report_to="none",                  # "wandb" or "tensorboard"
-    )
 
     trainer = SFTTrainer(
         model=model,                       

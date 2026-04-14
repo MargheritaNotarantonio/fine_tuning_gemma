@@ -1,8 +1,7 @@
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 from peft import PeftModel
-from config.settings import MODEL_ID, ADAPTER_DIR, OUTPUT_DIR
-from training import bnb_config
+from config.settings import MODEL_ID, ADAPTER_DIR, OUTPUT_DIR, bnb_config
 from load_tuned_model import load_tuned_model
 
 def inference(model, tokenizer, prompt):
